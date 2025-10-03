@@ -1,83 +1,77 @@
-﻿<!DOCTYPE html>
-<html lang="zh">
+<DOCTYPE超文本标记语言（html）>
+<html 郎="zh">
 <head>
   <meta charset="UTF-8">
   <title>中秋爱心宇宙</title>
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
+    身体 {
+      边缘: 0;
+      溢出: 隐藏的;
+      背景: 黑色的;
     }
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
+    #文本 {
+      位置: 绝对的;
+      顶: 10%;
+      宽度: 100%;
+      text-align: 中心;
+      font-size: 32小卖部;
+      颜色: #ff99cc;
+      font-family: "Arial", sans-serif;
+      font-weight: 大胆的;
+      z-index: 1;
     }
-    .text {
-      position: absolute;
-      width: 100%;
-      top: 40%;
-      font-size: 32px;
-      font-weight: bold;
-      color: #ff6699;
-    }
-  </style>
-</head>
-<body>
-  <canvas id="universe"></canvas>
-  <div class="text">中秋快乐 🌕💖</div>
+  </风格>
+</头>
+<身体>
+  <div id="text">🌕 中秋快乐 💖</级>
+  <帆布 身份证="scene"></帆布>
 
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></剧本>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/controls/OrbitControls.js"></剧本>
   <script>
-    const canvas = document.getElementById("universe");
-    const ctx = canvas.getContext("2d");
-    let w, h, stars = [];
+    const canvas = document.getElementById('scene');
+    康斯特 渲染器 = 新的 三.WebGLRenderer({帆布, 抗锯齿: 真正的});
+    renderer.setSize(window.内宽, 窗.内高);
 
-    function resize() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-    }
-    window.addEventListener("resize", resize);
-    resize();
+    康斯特 场景 = 新的 三.场景();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    照相机.位置.Z = 200;
 
-    class Star {
-      constructor() {
-        this.reset();
-      }
-      reset() {
-        this.x = Math.random() * w;
-        this.y = Math.random() * h;
-        this.size = Math.random() * 2;
-        this.speed = Math.random() * 0.5 + 0.2;
-      }
-      update() {
-        this.y += this.speed;
-        if (this.y > h) this.reset();
-      }
-      draw() {
-        ctx.fillStyle = "white";
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    康斯特 控制 = 新的 三.OrbitControls(照相机, 渲染器.domElement);
+
+    // ❤️ 创建爱心形状
+    功能 心形() {
+      康斯特 形状 = 新的 三.Shape();
+      形状.moveTo(0, 5);
+      形状.bezierCurveTo(5, 15, 20, 15, 20, 5);
+      形状.bezierCurveTo(20, -5, 10, -10, 0, -20);
+      形状.bezierCurveTo(-10, -10, -20, -5, -20, 5);
+      形状.bezierCurveTo(-20, 15, -5, 15, 0, 5);
+      返回 形状;
     }
 
-    for (let i = 0; i < 200; i++) {
-      stars.push(new Star());
-    }
+    // 粒子几何体
+    康斯特 心形 = 心形();
+    康斯特 点 = 心形.getPoints(2000);
+    康斯特 几何 = 新的 三.BufferGeometry().setFromPoints(点.map(P => 新的 三.Vector3(P.X*5, P.英语字母表的第25个字母*5, (数学.random()-0.5)*40)));
 
-    function animate() {
-      ctx.clearRect(0, 0, w, h);
-      for (let s of stars) {
-        s.update();
-        s.draw();
-      }
-      requestAnimationFrame(animate);
+    康斯特 材料 = 新的 三.PointsMaterial({颜色: 0xff6699, 大小: 1.5});
+    康斯特 粒子 = 新的 三.Points(几何, 材料);
+    场景.add(粒子);
+
+    功能 使活泼() {
+      requestAnimationFrame(使活泼);
+      粒子.旋转.英语字母表的第25个字母 += 0.002;
+      粒子.旋转.X += 0.001;
+      渲染器.render(场景, 照相机);
     }
-    animate();
-  </script>
-</body>
-</html>
+    使活泼();
+
+    窗.addEventListener('resize', () => {
+      照相机.方面 = 窗.内宽 / 窗.内高;
+      照相机.updateProjectionMatrix();
+      渲染器.setSize(窗.内宽, 窗.内高);
+    });
+  </剧本>
+</身体>
+</超文本标记语言>
