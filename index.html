@@ -1,83 +1,254 @@
-﻿<!DOCTYPE html>
-<html lang="zh">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>中秋爱心宇宙</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    .text {
-      position: absolute;
-      width: 100%;
-      top: 40%;
-      font-size: 32px;
-      font-weight: bold;
-      color: #ff6699;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>杨小姐中秋快乐💌</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;overflow:hidden;background:#000;font-family:"Microsoft YaHei",sans-serif;}
+  canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;}
+
+  /* 云层容器 */
+  .clouds{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:transparent;
+    overflow:hidden;
+    z-index:1;
+  }
+  .cloud{
+    position:absolute;
+    width:800px;height:400px;
+    background:url('https://i.imgur.com/3rKQJ0R.png') repeat-x;
+    background-size:contain;
+    opacity:0.12;
+    animation:moveClouds 120s linear infinite;
+  }
+  .cloud:nth-child(2){
+    top:20vh;left:-50%;
+    opacity:0.18;
+    animation-duration:160s;
+  }
+  .cloud:nth-child(3){
+    top:60vh;left:-70%;
+    opacity:0.1;
+    animation-duration:200s;
+  }
+  @keyframes moveClouds{
+    from{transform:translateX(-100%);}
+    to{transform:translateX(100%);}
+  }
+
+  /* 更真实的月亮 */
+  .moon{
+    position:absolute;
+    top:20vh;left:60vw;
+    width:160px;height:160px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #fff9e6 10%, #f4d03f 40%, #cba63a 60%, #0000 100%);
+    box-shadow:0 0 80px 30px rgba(255,235,150,0.4), 0 0 120px 60px rgba(255,255,200,0.1);
+    animation:float 10s ease-in-out infinite alternate;
+    overflow:hidden;
+    z-index:2;
+  }
+  .moon::before{
+    content:"";
+    position:absolute;inset:0;
+    background:url('https://i.imgur.com/4YwO4FZ.jpg') center/cover;
+    border-radius:50%;
+    opacity:0.45;
+    mix-blend-mode:overlay;
+  }
+  @keyframes float{
+    from{transform:translate(0,0);}
+    to{transform:translate(20px,10px);}
+  }
+
+  /* 信封 */
+  .envelope{
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%) scale(1);
+    width:180px;height:120px;
+    background:#ffcc88;
+    box-shadow:0 0 25px rgba(255,200,120,0.8);
+    border-radius:6px;
+    cursor:pointer;
+    transition:all 0.8s ease;
+    z-index:3;
+  }
+  .flap{
+    position:absolute;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:linear-gradient(135deg,#ffdd99,#ffaa55);
+    clip-path:polygon(0 0,100% 0,50% 50%);
+    transition:transform 0.8s ease;
+    transform-origin:top;
+  }
+  .envelope.open .flap{
+    transform:rotateX(180deg);
+  }
+  .text{
+    position:absolute;
+    top:55%;left:50%;
+    transform:translate(-50%,-50%);
+    color:#fff;
+    font-size:2.2em;
+    text-align:center;
+    line-height:1.5;
+    text-shadow:0 0 20px #ffd700,0 0 40px #fff1a8;
+    opacity:0;
+    transition:opacity 1.5s ease;
+    z-index:3;
+  }
+  .show-text{
+    opacity:1;
+  }
+
+  audio{position:fixed;bottom:20px;left:20px;opacity:0.5;z-index:4;}
+</style>
 </head>
 <body>
-  <canvas id="universe"></canvas>
-  <div class="text">中秋快乐 🌕💖</div>
+  <canvas id="particles"></canvas>
+
+  <!-- 云层漂浮 -->
+  <div class="clouds">
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+  </div>
+
+  <div class="moon"></div>
+
+  <div class="envelope" id="envelope">
+    <div class="flap"></div>
+  </div>
+
+  <div class="text" id="text">
+    🌕杨小姐，中秋快乐！<br>
+    愿你月圆人更圆，心想事成，幸福常伴！
+  </div>
+
+  <!-- 使用你上传的音频 -->
+  <audio src="M500002RTQh83n2Mgg.mp3" autoplay loop></audio>
 
   <script>
-    const canvas = document.getElementById("universe");
-    const ctx = canvas.getContext("2d");
-    let w, h, stars = [];
+    const canvas=document.getElementById('particles');
+    const ctx=canvas.getContext('2d');
+    let w,h,particles=[],meteors=[];
+    function resize(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight;}
+    window.addEventListener('resize',resize);resize();
 
-    function resize() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-    }
-    window.addEventListener("resize", resize);
-    resize();
-
-    class Star {
-      constructor() {
-        this.reset();
+    /* 星点粒子 */
+    class Particle{
+      constructor(){this.reset();}
+      reset(){
+        this.x=Math.random()*w;this.y=Math.random()*h;
+        this.vx=(Math.random()-0.5)*0.6;
+        this.vy=(Math.random()-0.5)*0.6;
+        this.size=Math.random()*2+1;
+        this.alpha=Math.random();
       }
-      reset() {
-        this.x = Math.random() * w;
-        this.y = Math.random() * h;
-        this.size = Math.random() * 2;
-        this.speed = Math.random() * 0.5 + 0.2;
+      move(){
+        this.x+=this.vx;this.y+=this.vy;
+        if(this.x<0||this.x>w||this.y<0||this.y>h)this.reset();
       }
-      update() {
-        this.y += this.speed;
-        if (this.y > h) this.reset();
-      }
-      draw() {
-        ctx.fillStyle = "white";
+      draw(){
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,255,255,${this.alpha})`;
         ctx.fill();
       }
     }
+    for(let i=0;i<120;i++)particles.push(new Particle());
 
-    for (let i = 0; i < 200; i++) {
-      stars.push(new Star());
-    }
-
-    function animate() {
-      ctx.clearRect(0, 0, w, h);
-      for (let s of stars) {
-        s.update();
-        s.draw();
+    /* 流星 */
+    class Meteor{
+      constructor(){this.reset();}
+      reset(){
+        this.x=Math.random()*w*1.5;
+        this.y=Math.random()*-h*0.2;
+        this.length=Math.random()*80+100;
+        this.speed=Math.random()*6+8;
+        this.angle=Math.PI/4;
+        this.opacity=1;
       }
+      move(){
+        this.x-=this.speed*Math.cos(this.angle);
+        this.y+=this.speed*Math.sin(this.angle);
+        this.opacity-=0.01;
+        if(this.opacity<=0||this.y>h)this.reset();
+      }
+      draw(){
+        const xEnd=this.x-this.length*Math.cos(this.angle);
+        const yEnd=this.y-this.length*Math.sin(this.angle);
+        const grad=ctx.createLinearGradient(this.x,this.y,xEnd,yEnd);
+        grad.addColorStop(0,`rgba(255,255,255,${this.opacity})`);
+        grad.addColorStop(1,'rgba(255,255,255,0)');
+        ctx.strokeStyle=grad;
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.moveTo(this.x,this.y);
+        ctx.lineTo(xEnd,yEnd);
+        ctx.stroke();
+      }
+    }
+    for(let i=0;i<10;i++)meteors.push(new Meteor());
+
+    /* 动画主循环 */
+    function animate(){
+      ctx.clearRect(0,0,w,h);
+      for(let p of particles){p.move();p.draw();}
+      for(let m of meteors){m.move();m.draw();}
       requestAnimationFrame(animate);
     }
     animate();
+
+    /* 信封点击事件 */
+    const envelope=document.getElementById('envelope');
+    const text=document.getElementById('text');
+    let opened=false;
+    envelope.addEventListener('click',()=>{
+      if(opened) return;
+      envelope.classList.add('open');
+      setTimeout(()=>{
+        envelope.style.opacity='0';
+        text.classList.add('show-text');
+      },1000);
+      opened=true;
+    });
+
+    /* 点击出现小星星 ✨ */
+    const stars=[];
+    document.addEventListener('click',e=>{
+      for(let i=0;i<6;i++){
+        stars.push({
+          x:e.clientX,y:e.clientY,
+          size:Math.random()*4+2,
+          life:1,
+          vx:(Math.random()-0.5)*2,
+          vy:(Math.random()-0.5)*2
+        });
+      }
+    });
+    function drawStars(){
+      for(let i=stars.length-1;i>=0;i--){
+        const s=stars[i];
+        s.x+=s.vx;s.y+=s.vy;s.life-=0.02;
+        if(s.life<=0)stars.splice(i,1);
+        else{
+          ctx.beginPath();
+          ctx.arc(s.x,s.y,s.size,0,Math.PI*2);
+          ctx.fillStyle=`rgba(255,255,180,${s.life})`;
+          ctx.fill();
+        }
+      }
+      requestAnimationFrame(drawStars);
+    }
+    drawStars();
   </script>
 </body>
 </html>
